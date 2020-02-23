@@ -35,7 +35,8 @@ public class Cell {
     }
 
     public Boolean shouldTurnOn(){
-        nextState = neighbors.stream().filter(Cell::isOn).count() == 3;
+        final long count = neighbors.stream().filter(Cell::isOn).count();
+        nextState = count == 3;
         return nextState;
     }
 

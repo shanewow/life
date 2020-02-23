@@ -24,13 +24,15 @@ public class CellService implements DisposableBean, InitializingBean {
     private CompletableFuture<Boolean> promise;
     private LifeContext lifeContext;
     private LifeGrid lifeGrid;
+    private CellFactory cellFactory;
 
     private AtomicLong atomicLong = new AtomicLong();
     private StopWatch stopWatch = new StopWatch();
 
-    public CellService(LifeContext lifeContext, LifeGrid lifeGrid){
+    public CellService(LifeContext lifeContext, LifeGrid lifeGrid, CellFactory cellFactory){
         this.lifeContext = lifeContext;
         this.lifeGrid = lifeGrid;
+        this.cellFactory = cellFactory;
     }
 
     @Override
@@ -84,6 +86,11 @@ public class CellService implements DisposableBean, InitializingBean {
                     LOGGER.info("Processed {} in {} or {} per sec", atomicLong.get(), stopWatch.getTotalTimeSeconds(), atomicLong.get() / stopWatch.getTotalTimeSeconds());
                 })
                 .get(1, TimeUnit.MINUTES);
+    }
+
+    public void reset(){
+        lifeContext.apply(cellFactory.createContext());
+        lifeGrid.repaint();
     }
 
 

@@ -10,9 +10,9 @@ import org.springframework.util.StopWatch;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.function.Function;
 import java.util.function.IntFunction;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -22,12 +22,12 @@ public class CellFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CellFactory.class);
 
-    private final Random random;
+    private final Supplier<Boolean> booleanSupplier;
     private final LifeProperties lifeProperties;
 
-    public CellFactory(Random random, LifeProperties lifeProperties) {
-        this.random = random;
+    public CellFactory(LifeProperties lifeProperties, Supplier<Boolean> booleanSupplier) {
         this.lifeProperties = lifeProperties;
+        this.booleanSupplier = booleanSupplier;
     }
 
     public LifeContext createContext() {
@@ -45,7 +45,7 @@ public class CellFactory {
         stopWatch.start("Flattening Cells");
         final List<Cell> cells = rows.stream()
                 .flatMap(List::stream)
-                .collect(Collectors.toUnmodifiableList());
+                .collect(Collectors.toList());
         stopWatch.stop();
 
         LOGGER.info("{} Cells initialized in: {}", cells.size(), stopWatch.toString());
@@ -64,7 +64,7 @@ public class CellFactory {
                 .range(0, lifeProperties.getYMax())
                 .boxed()
                 .flatMap(this::createRow)
-                .collect(Collectors.toUnmodifiableMap(Cell::getId, Function.identity()));
+                .collect(Collectors.toMap(Cell::getId, Function.identity()));
 
         //set neighbors now that all have been created
         cellMap
@@ -92,7 +92,7 @@ public class CellFactory {
                 .stream()
                 .sorted(Map.Entry.comparingByKey())
                 .map(Map.Entry::getValue)
-                .collect(Collectors.toUnmodifiableList());
+                .collect(Collectors.toList());
     }
 
     private Stream<Cell> createRow(int y){
@@ -105,7 +105,8 @@ public class CellFactory {
         return x -> Cell.builder()
                 .x(x)
                 .y(y)
-                .startingValue(random.nextBoolean())
+//                .startingValue(random.nextBoolean())
+                .startingValue(booleanSupplier.get())
                 .build();
     }
 
