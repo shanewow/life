@@ -61,6 +61,15 @@ public class Cell {
         return !cell.getCurrentState();
     }
 
+
+    public static Boolean calculateNext(Cell cell){
+        if(cell.getCurrentState()){
+            return cell.shouldTurnOff();
+        }else{
+            return cell.shouldTurnOn();
+        }
+    }
+
     public static CompletableFuture<Boolean> calculateNextAsync(Cell cell){
         if(cell.getCurrentState()){
             return shouldTurnOffAsync(cell);
