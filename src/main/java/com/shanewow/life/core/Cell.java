@@ -6,7 +6,6 @@ import lombok.Getter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 @Getter
 public class Cell {
@@ -57,33 +56,12 @@ public class Cell {
         return cell.getCurrentState();
     }
 
-    public static Boolean isOff(Cell cell){
-        return !cell.getCurrentState();
-    }
-
-
     public static Boolean calculateNext(Cell cell){
         if(cell.getCurrentState()){
             return cell.shouldTurnOff();
         }else{
             return cell.shouldTurnOn();
         }
-    }
-
-    public static CompletableFuture<Boolean> calculateNextAsync(Cell cell){
-        if(cell.getCurrentState()){
-            return shouldTurnOffAsync(cell);
-        }else{
-            return shouldTurnOnAsync(cell);
-        }
-    }
-
-    public static CompletableFuture<Boolean> shouldTurnOnAsync(Cell cell){
-        return CompletableFuture.supplyAsync(cell::shouldTurnOn);
-    }
-
-    public static CompletableFuture<Boolean> shouldTurnOffAsync(Cell cell){
-        return CompletableFuture.supplyAsync(cell::shouldTurnOff);
     }
 
     public static List<Cell> calculateNeighbors(int x, int y,  int maxX, int maxY, Map<String, Cell> cellMap){

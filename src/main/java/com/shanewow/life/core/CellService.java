@@ -9,7 +9,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -55,9 +54,15 @@ public class CellService implements DisposableBean, InitializingBean {
 
         promise = CompletableFuture.supplyAsync(() ->{
             while(running){
-//                processRowsWithFutures(); //ok 143.5
-                processCellsWithoutFutures(); //best 157.8
-//                processRowsWithoutFutures(); //ok 149.6
+                lifeContext.getCells()
+                        .parallelStream()
+                        .forEach(Cell::calculateNext);
+
+                lifeContext.getCells()
+                        .parallelStream()
+                        .forEach(Cell::applyNext);
+
+                updateScreen();
             }
            return true;
         });
@@ -79,78 +84,9 @@ public class CellService implements DisposableBean, InitializingBean {
         lifeGrid.repaint();
     }
 
-
-    private void processRowsWithFutures(){
-        try {
-            CompletableFuture.allOf(
-                    lifeContext.getRows()
-                            .parallelStream()
-                            .map(CellService::processRowAsync)
-                            .toArray(CompletableFuture[]::new)
-            )
-            .thenAcceptAsync(result ->
-                    lifeContext.getCells()
-                            .parallelStream()
-                            .forEach(Cell::applyNext)
-            )
-            .whenComplete(this::updateScreen)
-            .get();
-        } catch (InterruptedException e) {
-            LOGGER.error("Interrupted while processing", e);
-        } catch (ExecutionException e) {
-            LOGGER.error("Unexpected exception while processing", e);
-        }
-    }
-
-
-    private void processRowsWithoutFutures(){
-        lifeContext.getRows()
-                .parallelStream()
-                .forEach(CellService::processRow);
-
-        lifeContext.getCells()
-                .parallelStream()
-                .forEach(Cell::applyNext);
-
-        updateScreen();
-    }
-
-    private void processCellsWithoutFutures(){
-
-        lifeContext.getCells()
-                .parallelStream()
-                .forEach(Cell::calculateNext);
-
-        lifeContext.getCells()
-                .parallelStream()
-                .forEach(Cell::applyNext);
-
-        updateScreen();
-    }
-
-
-
-
-    private void updateScreen(Object result, Throwable error){
-        updateScreen();
-    }
-
     private void updateScreen(){
         lifeGrid.repaint();
         atomicLong.incrementAndGet();
-    }
-
-
-
-
-
-    private static CompletableFuture<Boolean> processRowAsync(List<Cell> row){
-        return CompletableFuture.supplyAsync(() -> processRow(row));
-    }
-
-    private static Boolean processRow(List<Cell> row){
-        row.parallelStream().forEach(Cell::calculateNext);
-        return true;
     }
 
 }
