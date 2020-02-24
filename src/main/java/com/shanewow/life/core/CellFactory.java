@@ -82,6 +82,20 @@ public class CellFactory {
         return cellMap;
     }
 
+    private IntFunction<Cell> createCellFunction(int y){
+        return x -> Cell.builder()
+                .x(x)
+                .y(y)
+                .startingValue(booleanSupplier.get())
+                .build();
+    }
+
+    private Stream<Cell> createRow(int y){
+        return IntStream
+                .range(0, lifeProperties.getXMax())
+                .mapToObj(createCellFunction(y));
+    }
+
     private static List<List<Cell>> initRows(Map<String, Cell> cellMap){
         return cellMap
                 .values()
@@ -95,18 +109,6 @@ public class CellFactory {
                 .collect(Collectors.toList());
     }
 
-    private Stream<Cell> createRow(int y){
-        return IntStream
-                .range(0, lifeProperties.getXMax())
-                .mapToObj(createCellFunction(y));
-    }
 
-    private IntFunction<Cell> createCellFunction(int y){
-        return x -> Cell.builder()
-                .x(x)
-                .y(y)
-                .startingValue(booleanSupplier.get())
-                .build();
-    }
 
 }
