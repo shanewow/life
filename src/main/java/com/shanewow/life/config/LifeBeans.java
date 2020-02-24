@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
 @Configuration
@@ -14,10 +13,8 @@ public class LifeBeans {
     @Bean
     public Supplier<Boolean> booleanSupplier(){
         final Random random = new Random();
-        final AtomicLong counter = new AtomicLong();
-
-        //give a random value every 4th request
-        return () -> Math.floorMod(counter.incrementAndGet(), random.nextInt(16) + 1) == 1
+        //randomly turn on 20% of the cells
+        return () -> random.nextDouble() < 0.20
                 ? random.nextBoolean()
                 : false;
     }
