@@ -20,7 +20,7 @@ public class CellService implements DisposableBean, InitializingBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CellService.class);
 
-    private boolean running;
+    private Boolean running = false;
     private CompletableFuture<Boolean> promise;
     private LifeContext lifeContext;
     private LifeGrid lifeGrid;
@@ -37,7 +37,7 @@ public class CellService implements DisposableBean, InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        start();
+//        start();
     }
 
     @Override
@@ -49,34 +49,46 @@ public class CellService implements DisposableBean, InitializingBean {
     public void start(){
         LOGGER.info("Starting...");
 
-        running = true;
-        stopWatch.start("Processing");
+        synchronized (running) {
+            if(!running){
+                running = true;
+                stopWatch.start("Processing");
 
-        promise = CompletableFuture.supplyAsync(() ->{
-            while(running){
-                lifeContext.getCells()
-                        .parallelStream()
-                        .forEach(Cell::calculateNext);
+                promise = CompletableFuture.supplyAsync(() ->{
+                    while(running){
+                        lifeContext.getCells()
+                                .parallelStream()
+                                .forEach(Cell::calculateNext);
 
-                lifeContext.getCells()
-                        .parallelStream()
-                        .forEach(Cell::applyNext);
+                        lifeContext.getCells()
+                                .parallelStream()
+                                .forEach(Cell::applyNext);
 
-                updateScreen();
+                        updateScreen();
+                    }
+                    return true;
+                });
+            }else {
+                LOGGER.info("Already running.");
             }
-           return true;
-        });
+        }
     }
 
-    public Boolean stop() throws InterruptedException, ExecutionException, TimeoutException {
+    public void stop() throws InterruptedException, ExecutionException, TimeoutException {
         LOGGER.info("Stopping...");
-        running = false;
-        return promise
-                .whenComplete((r,e) -> {
-                    stopWatch.stop();
-                    LOGGER.info("Processed {} in {} or {} per sec", atomicLong.get(), stopWatch.getTotalTimeSeconds(), atomicLong.get() / stopWatch.getTotalTimeSeconds());
-                })
-                .get(1, TimeUnit.MINUTES);
+        synchronized (running){
+            if(running){
+                running = false;
+                promise
+                    .whenComplete((r,e) -> {
+                        stopWatch.stop();
+                        LOGGER.info("Processed {} in {} or {} per sec", atomicLong.get(), stopWatch.getTotalTimeSeconds(), atomicLong.get() / stopWatch.getTotalTimeSeconds());
+                    })
+                    .get(1, TimeUnit.MINUTES);
+            }else {
+                LOGGER.info("Stopped called while not running.");
+            }
+        }
     }
 
     public void reset(){

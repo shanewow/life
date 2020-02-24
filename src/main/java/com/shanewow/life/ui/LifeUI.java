@@ -25,7 +25,7 @@ public class LifeUI extends JFrame {
         this.lifeGrid = lifeGrid;
         this.cellService = cellService;
         this.stateChangeListeners = initUI();
-        callListeners(LifeUIState.STARTED);
+        callListeners(LifeUIState.STOPPED);
     }
 
     private void changeState(LifeUIState state){
@@ -38,16 +38,33 @@ public class LifeUI extends JFrame {
 
     private List<Consumer<LifeUIState>> initUI() {
 
-        final List<Consumer<LifeUIState>> stateListeners = new ArrayList<>();
+        setTitle("Life");
+        setSize(1024, 768);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         final Container pane = getContentPane();
         final FlowLayout flowLayout = new FlowLayout();
         pane.setLayout(flowLayout);
 
-        final JButton quitButton = new JButton("Quit");
-        quitButton.addActionListener((ActionEvent event) -> System.exit(0));
-        pane.add(quitButton);
 
+        final List<Consumer<LifeUIState>> stateListeners = new ArrayList<>();
+
+        final JButton resetButton = new JButton("Reset");
+        resetButton.addActionListener((ActionEvent event) -> {
+            cellService.reset();
+        });
+        stateListeners.add(state -> resetButton.setEnabled(LifeUIState.STOPPED.equals(state)));
+        pane.add(resetButton);
+
+
+        final JButton startButton = new JButton("Play");
+        startButton.addActionListener((ActionEvent event) -> {
+            changeState(LifeUIState.STARTED);
+            cellService.start();
+        });
+        stateListeners.add(state -> startButton.setEnabled(LifeUIState.STOPPED.equals(state)));
+        pane.add(startButton);
 
         final JButton pauseButton = new JButton("Stop");
         pauseButton.addActionListener((ActionEvent event) -> {
@@ -61,26 +78,12 @@ public class LifeUI extends JFrame {
         stateListeners.add(state -> pauseButton.setEnabled(LifeUIState.STARTED.equals(state)));
         pane.add(pauseButton);
 
-        final JButton resetButton = new JButton("Reset");
-        resetButton.addActionListener((ActionEvent event) -> {
-            cellService.reset();
-        });
-        stateListeners.add(state -> resetButton.setEnabled(LifeUIState.STOPPED.equals(state)));
-        pane.add(resetButton);
+        final JButton quitButton = new JButton("Quit");
+        quitButton.addActionListener((ActionEvent event) -> System.exit(0));
+        pane.add(quitButton);
 
-        final JButton startButton = new JButton("Start");
-        startButton.addActionListener((ActionEvent event) -> {
-                changeState(LifeUIState.STARTED);
-                cellService.start();
-        });
-        stateListeners.add(state -> startButton.setEnabled(LifeUIState.STOPPED.equals(state)));
-        pane.add(startButton);
+
         pane.add(lifeGrid);
-
-        setTitle("Life");
-        setSize(1024, 768);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         return stateListeners;
     }
