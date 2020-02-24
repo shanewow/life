@@ -105,7 +105,6 @@ public class CellFactory {
         return x -> Cell.builder()
                 .x(x)
                 .y(y)
-//                .startingValue(random.nextBoolean())
                 .startingValue(booleanSupplier.get())
                 .build();
     }

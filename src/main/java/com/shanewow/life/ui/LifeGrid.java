@@ -32,13 +32,12 @@ public class LifeGrid extends JPanel {
         final Graphics2D g2d = (Graphics2D) g.create();
         final int size = lifeProperties.getSize();
 
-        lifeContext
-                .getCells()
-                .forEach(cell -> {
-                    g.setColor(cell.getCurrentState() ? Color.BLACK : Color.WHITE);
-                    g.drawRect(cell.getX() * size, cell.getY() * size, size, size);
-                    g.fillRect(cell.getX() * size, cell.getY() * size, size, size);
-                });
+        lifeContext.getCells()
+            .forEach(cell -> {
+                g.setColor(cell.getCurrentState() ? Color.BLACK : Color.WHITE);
+                g.drawRect(cell.getX() * size, cell.getY() * size, size, size);
+                g.fillRect(cell.getX() * size, cell.getY() * size, size, size);
+            });
 
         g2d.dispose();
     }
