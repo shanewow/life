@@ -13,10 +13,8 @@ public class LifeBeans {
     @Bean
     public Supplier<Boolean> booleanSupplier(){
         final SplittableRandom random = new SplittableRandom();
-        //randomly turn on 20% of the cells
-        return () -> random.nextDouble() < 0.20
-                ? random.nextBoolean()
-                : false;
+        //randomly turn on 10% of the cells
+        return () -> random.nextDouble() < 0.10;
     }
 
     @Bean
