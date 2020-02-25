@@ -34,7 +34,7 @@ public class LifeGrid extends JPanel {
 
         lifeContext.getCells()
             .forEach(cell -> {
-                g.setColor(cell.getCurrentState() ? Color.BLACK : Color.WHITE);
+                g.setColor(cell.isCurrentState() ? Color.BLACK : Color.WHITE);
                 g.drawRect(cell.getX() * size, cell.getY() * size, size, size);
                 g.fillRect(cell.getX() * size, cell.getY() * size, size, size);
             });

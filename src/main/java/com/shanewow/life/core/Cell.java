@@ -12,8 +12,8 @@ public class Cell {
     private int x;
     private int y;
     private String id;
-    private Boolean currentState;
-    private Boolean nextState;
+    private boolean currentState;
+    private boolean nextState;
     private List<Cell> neighbors;
 
     @Builder
@@ -53,11 +53,11 @@ public class Cell {
     //UTILS
 
     public static boolean isOn(Cell cell){
-        return cell.getCurrentState();
+        return cell.isCurrentState();
     }
 
     public static boolean calculateNext(Cell cell){
-        if(cell.getCurrentState()){
+        if(cell.isCurrentState()){
             return cell.shouldTurnOff();
         }else{
             return cell.shouldTurnOn();
