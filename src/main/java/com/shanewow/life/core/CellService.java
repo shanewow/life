@@ -14,6 +14,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 @Service()
 public class CellService implements DisposableBean, InitializingBean {
@@ -57,12 +58,11 @@ public class CellService implements DisposableBean, InitializingBean {
                 promise = CompletableFuture.supplyAsync(() ->{
                     while(running){
                         lifeContext.getCells()
-                                .parallelStream()
-                                .forEach(Cell::calculateNext);
-
-                        lifeContext.getCells()
-                                .parallelStream()
-                                .forEach(Cell::applyNext);
+                            .parallelStream()
+                            .filter(Cell::calculateNext)
+                            .collect(Collectors.toList())
+                            .parallelStream()
+                            .forEach(Cell::applyNext);
 
                         updateScreen();
                     }

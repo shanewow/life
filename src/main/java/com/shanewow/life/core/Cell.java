@@ -33,7 +33,7 @@ public class Cell {
         currentState = nextState;
     }
 
-    public Boolean shouldTurnOn(){
+    public boolean shouldTurnOn(){
         final long count = neighbors.stream().filter(Cell::isOn).count();
         nextState = count == 3;
         return nextState;
@@ -42,7 +42,7 @@ public class Cell {
     public boolean shouldTurnOff(){
         final long count = neighbors.stream().filter(Cell::isOn).count();
         nextState = (count > 1 && count < 4);
-        return nextState;
+        return !nextState;
     }
 
 
@@ -52,11 +52,11 @@ public class Cell {
 
     //UTILS
 
-    public static Boolean isOn(Cell cell){
+    public static boolean isOn(Cell cell){
         return cell.getCurrentState();
     }
 
-    public static Boolean calculateNext(Cell cell){
+    public static boolean calculateNext(Cell cell){
         if(cell.getCurrentState()){
             return cell.shouldTurnOff();
         }else{
