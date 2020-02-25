@@ -9,6 +9,7 @@ import java.util.Map;
 
 @Getter
 public class Cell {
+
     private int x;
     private int y;
     private String id;
@@ -35,13 +36,13 @@ public class Cell {
 
     public boolean shouldTurnOn(){
         final long count = neighbors.stream().filter(Cell::isOn).count();
-        nextState = count == 3;
+        nextState = count == 3L;
         return nextState;
     }
 
     public boolean shouldTurnOff(){
         final long count = neighbors.stream().filter(Cell::isOn).count();
-        nextState = (count > 1 && count < 4);
+        nextState = (count > 1L && count < 4L);
         return !nextState;
     }
 
@@ -80,21 +81,21 @@ public class Cell {
         );
     }
 
-    public static int increment(int val, int max){
+    private static int increment(int val, int max){
         if(val == max - 1){
             return 0;
         }
         return val + 1;
     }
 
-    public static int decrement(int val, int max){
+    private static int decrement(int val, int max){
         if(val == 0){
             return max - 1;
         }
         return val - 1;
     }
 
-    public static String formatId(int x, int y){
+    private static String formatId(int x, int y){
         return String.format("%s,%s", x, y);
     }
 }
