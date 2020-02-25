@@ -25,15 +25,11 @@ public class LifeUI extends JFrame {
         this.lifeGrid = lifeGrid;
         this.cellService = cellService;
         this.stateChangeListeners = initUI();
-        callListeners(LifeUIState.STOPPED);
+        changeState(LifeUIState.STOPPED);
     }
 
     private void changeState(LifeUIState state){
-        callListeners(state);
-    }
-
-    private void callListeners(LifeUIState state){
-        stateChangeListeners.forEach(consumer -> consumer.accept(state));
+        stateChangeListeners.parallelStream().forEach(consumer -> consumer.accept(state));
     }
 
     private List<Consumer<LifeUIState>> initUI() {
