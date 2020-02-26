@@ -2,6 +2,7 @@ package com.shanewow.life.ui;
 
 import com.shanewow.life.config.LifeContext;
 import com.shanewow.life.config.LifeProperties;
+import com.shanewow.life.core.Cell;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
@@ -32,12 +33,12 @@ public class LifeGrid extends JPanel {
         final Graphics2D g2d = (Graphics2D) g.create();
         final int size = lifeProperties.getSize();
 
+        g.setColor(Color.BLACK);
+
         lifeContext.getCells()
-            .forEach(cell -> {
-                g.setColor(cell.isCurrentState() ? Color.BLACK : Color.WHITE);
-                g.drawRect(cell.getX() * size, cell.getY() * size, size, size);
-                g.fillRect(cell.getX() * size, cell.getY() * size, size, size);
-            });
+                .parallelStream()
+                .filter(Cell::isOn)
+                .forEach(cell -> g.fillRect(cell.getX() * size, cell.getY() * size, size, size));
 
         g2d.dispose();
     }
