@@ -14,6 +14,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Service()
@@ -25,15 +26,15 @@ public class CellService implements DisposableBean, InitializingBean {
     private CompletableFuture<Boolean> promise;
     private LifeContext lifeContext;
     private LifeGrid lifeGrid;
-    private CellFactory cellFactory;
+    private Supplier<Boolean> booleanSupplier;
 
     private AtomicLong atomicLong = new AtomicLong();
     private StopWatch stopWatch = new StopWatch();
 
-    public CellService(LifeContext lifeContext, LifeGrid lifeGrid, CellFactory cellFactory){
+    public CellService(LifeContext lifeContext, LifeGrid lifeGrid, Supplier<Boolean> booleanSupplier){
         this.lifeContext = lifeContext;
         this.lifeGrid = lifeGrid;
-        this.cellFactory = cellFactory;
+        this.booleanSupplier = booleanSupplier;
     }
 
     @Override
@@ -57,6 +58,7 @@ public class CellService implements DisposableBean, InitializingBean {
 
                 promise = CompletableFuture.supplyAsync(() ->{
                     while(running){
+
                         lifeContext.getCells()
                             .parallelStream()
                             .filter(Cell::calculateNext)
@@ -92,7 +94,13 @@ public class CellService implements DisposableBean, InitializingBean {
     }
 
     public void reset(){
-        lifeContext.apply(cellFactory.createContext());
+        lifeContext
+            .getCells()
+            .parallelStream()
+            .forEach(cell -> {
+                cell.setNext(booleanSupplier.get());
+                cell.applyNext();
+            });
         lifeGrid.repaint();
     }
 

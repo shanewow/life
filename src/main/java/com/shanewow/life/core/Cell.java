@@ -30,6 +30,8 @@ public class Cell {
         this.neighbors = neighbors;
     }
 
+    public void setNext(boolean next){ nextState = next; }
+
     public void applyNext(){
         currentState = nextState;
     }

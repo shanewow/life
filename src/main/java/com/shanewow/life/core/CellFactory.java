@@ -5,11 +5,12 @@ import com.shanewow.life.config.LifeProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StopWatch;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
@@ -32,29 +33,36 @@ public class CellFactory {
 
     public LifeContext createContext() {
 
-        final StopWatch stopWatch = new StopWatch();
+        final long startTime = System.currentTimeMillis();
 
-        stopWatch.start("Building cells");
+        //create cells
         final Map<String, Cell> map = createCells();
-        stopWatch.stop();
+        //associate neighbors
+        final CompletableFuture<Boolean> neighborsPromise = CompletableFuture.supplyAsync(() -> {
+            initNeighbors(map);
+            return true;
+        });
+        //sorted into rows
+        final CompletableFuture<List<List<Cell>>> rowsPromise = CompletableFuture.supplyAsync(() -> initRows(map));
+        //sorted into cells list
+        final CompletableFuture<List<Cell>> cellsPromise = CompletableFuture.supplyAsync(() -> initCells(map));
 
-        stopWatch.start("Sorting Cells Into Rows");
-        final List<List<Cell>> rows = initRows(map);
-        stopWatch.stop();
+        try {
+            neighborsPromise.get();
 
-        stopWatch.start("Flattening Cells");
-        final List<Cell> cells = rows.stream()
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
-        stopWatch.stop();
+            LOGGER.info("{} Cells initialized in: {} seconds", map.size(), (System.currentTimeMillis() - startTime)/1000 );
 
-        LOGGER.info("{} Cells initialized in: {}", cells.size(), stopWatch.toString());
+            return LifeContext.builder()
+                    .cellMap(map)
+                    .rows(rowsPromise.get())
+                    .cells(cellsPromise.get())
+                    .build();
 
-        return LifeContext.builder()
-                .cellMap(map)
-                .rows(rows)
-                .cells(cells)
-                .build();
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Cell creation was interrupted.", e);
+        } catch (ExecutionException e) {
+            throw new RuntimeException("Unexpected exception while creating cells.", e);
+        }
     }
 
     private Map<String, Cell> createCells(){
@@ -62,10 +70,30 @@ public class CellFactory {
         //generate the cells and their initial state
         final Map<String, Cell> cellMap = IntStream
                 .range(0, lifeProperties.getYMax())
+                .parallel()
                 .boxed()
                 .flatMap(this::createRow)
                 .collect(Collectors.toMap(Cell::getId, Function.identity()));
 
+        return cellMap;
+    }
+
+    private Stream<Cell> createRow(int y){
+        return IntStream
+                .range(0, lifeProperties.getXMax())
+                .mapToObj(createCellFunction(y));
+    }
+
+    private IntFunction<Cell> createCellFunction(int y){
+        return x -> Cell.builder()
+                .x(x)
+                .y(y)
+                .startingValue(booleanSupplier.get())
+                .build();
+    }
+
+
+    private void initNeighbors(Map<String, Cell> cellMap){
         //set neighbors now that all have been created
         cellMap
                 .values()
@@ -78,22 +106,6 @@ public class CellFactory {
                                 lifeProperties.getYMax(),
                                 cellMap))
                 );
-
-        return cellMap;
-    }
-
-    private IntFunction<Cell> createCellFunction(int y){
-        return x -> Cell.builder()
-                .x(x)
-                .y(y)
-                .startingValue(booleanSupplier.get())
-                .build();
-    }
-
-    private Stream<Cell> createRow(int y){
-        return IntStream
-                .range(0, lifeProperties.getXMax())
-                .mapToObj(createCellFunction(y));
     }
 
     private static List<List<Cell>> initRows(Map<String, Cell> cellMap){
@@ -106,6 +118,14 @@ public class CellFactory {
                 .stream()
                 .sorted(Map.Entry.comparingByKey())
                 .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
+    }
+
+    private static List<Cell> initCells(Map<String, Cell> cellMap){
+        return cellMap
+                .values()
+                .stream()
+                .sorted(Comparator.comparing(Cell::getY).thenComparing(Cell::getX))
                 .collect(Collectors.toList());
     }
 
