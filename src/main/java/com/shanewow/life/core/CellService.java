@@ -84,7 +84,7 @@ public class CellService implements DisposableBean, InitializingBean {
                 promise
                     .whenComplete((r,e) -> {
                         stopWatch.stop();
-                        LOGGER.info("Processed {} in {} or {} per sec", atomicLong.get(), stopWatch.getTotalTimeSeconds(), atomicLong.get() / stopWatch.getTotalTimeSeconds());
+                        LOGGER.info("Processed {} frames in {} seconds or {} per sec", atomicLong.get(), stopWatch.getTotalTimeSeconds(), atomicLong.get() / stopWatch.getTotalTimeSeconds());
                     })
                     .get(1, TimeUnit.MINUTES);
             }else {
