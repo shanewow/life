@@ -12,9 +12,10 @@ public class LifeBeans {
 
     @Bean
     public Supplier<Boolean> booleanSupplier(){
-        final SplittableRandom random = new SplittableRandom();
+        final SplittableRandom splittableRandom = new SplittableRandom();
+        final ThreadLocal<SplittableRandom> random = ThreadLocal.withInitial(() -> splittableRandom.split());
         //randomly turn on 10% of the cells
-        return () -> random.nextDouble() < 0.10;
+        return () -> random.get().nextDouble() < 0.10;
     }
 
     @Bean
