@@ -30,15 +30,15 @@ public class LifeGrid extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        final Graphics2D g2d = (Graphics2D) g.create();
+        final Graphics2D g2d = (Graphics2D) g;
         final int size = lifeProperties.getSize();
 
-        g.setColor(Color.BLACK);
+        g2d.setColor(Color.BLACK);
 
         lifeContext.getCells()
                 .parallelStream()
                 .filter(Cell::isOn)
-                .forEach(cell -> g.fillRect(cell.getX() * size, cell.getY() * size, size, size));
+                .forEach(cell -> g2d.fillRect(cell.getX() * size, cell.getY() * size, size, size));
 
         g2d.dispose();
     }
